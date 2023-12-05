@@ -129,6 +129,21 @@ class Bomb:
         screen.blit(self.img, self.rct)
 
 
+class Explosion:
+    """
+    爆弾を破壊したときの処理
+    """
+    def __init__(self, bomb:Bomb):
+        img = pg.image.load(f"{MAIN_DIR}/fig/explosion.gif")
+        self.imgs = [pg.transform.flip(img, True, True), img]
+        self.pos = bomb.rct.center
+        self.life = 50
+
+    def update(self, screen):
+        self.life -= 1
+        screen.blit(self.imgs[self.life % 2], self.pos)
+
+
 class Beam:
     def __init__(self, bird: Bird):
         self.img = pg.image.load(f"{MAIN_DIR}/fig/beam.png")
@@ -176,6 +191,7 @@ def main():
     beam = None
     beams = []  # 複数のビームのためのリスト
     score = Score()
+    exp_lst = []
 
     clock = pg.time.Clock()
     tmr = 0
@@ -210,10 +226,16 @@ def main():
                     bombs[i] = None
                     bird.change_img(6, screen)
                     score.score += 1
+                    # exp = Explosion(bomb)
+                    exp_lst.append(Explosion(bomb))
+
 
 
         # Noneでない爆弾だけのリストを作る
         bombs = [bomb for bomb in bombs if bomb is not None]
+
+        #exp_lstからNoneをとりのぞく
+        exp_lst = [ex for ex in exp_lst if ex.life > 0]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
@@ -225,6 +247,9 @@ def main():
                 beam.update(screen)
             else:
                 beams.remove(beam)  # ビームが範囲外ならリストから削除
+
+        for ex in exp_lst:
+            ex.update(screen)
 
         score.update(screen)
         pg.display.update()
