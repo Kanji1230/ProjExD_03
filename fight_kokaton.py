@@ -121,12 +121,26 @@ class Bomb:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+class Beam:
+    """
+    beamに関するクラス
+    """
+    def __init__(self, bird: Bird):
+        self.img = pg.image.load(f"{MAIN_DIR}/fig/beam.jpg")
+        self.rct = self.img.get_rect()
+        self.rct.center = bird.rct.center
+        self.vx, self.vy = +5, 0
+
+    def update(self, screen: pg.Surface):
+        self.rct.move_ip()
+        screen.blit(self.img, self.rct)
+ 
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load(f"{MAIN_DIR}/fig/pg_bg.jpg")
-    bird = Bird(3, (900, 400))
+    bird = Bird(3, (900, 400))  # 3の画像のこうかとんを900, 400に表示する
     bomb = Bomb((255, 0, 0), 10)
 
     clock = pg.time.Clock()
@@ -135,6 +149,8 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
+            if event == pg.KEYDOWN and event.key == pg.K_SPACE:  # スペースキーが押されたら
+                beam = Beam(bird)  # ビームインスタンスの生成
         
         screen.blit(bg_img, [0, 0])
         
@@ -148,6 +164,7 @@ def main():
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         bomb.update(screen)
+        beam.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
