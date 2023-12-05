@@ -147,6 +147,9 @@ class Beam:
 
 
 class Score:
+    """
+    スコア表示に関するクラス
+    """
     def __init__(self):
         self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
         self.color = (0, 0, 255)
@@ -171,6 +174,7 @@ def main():
     # BombインスタンスがNUM個並んだリスト
     bombs = [Bomb() for _ in range(NUM_OF_BOMBS)]  
     beam = None
+    beams = []  # 複数のビームのためのリスト
     score = Score()
 
     clock = pg.time.Clock()
@@ -180,7 +184,8 @@ def main():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:  # スペースキーが押されたら
-                beam = Beam(bird)  # ビームインスタンスの生成
+                beam = Beam(bird)
+                beams.append(beam)  # ビームインスタンスの生成
         
         screen.blit(bg_img, [0, 0])
         
@@ -192,12 +197,21 @@ def main():
                 time.sleep(1)
                 return
 
+        # for i, bomb in enumerate(bombs):
+        #     if beam is not None and beam.rct.colliderect(bomb.rct):
+        #         beam = None
+        #         bombs[i] = None
+        #         bird.change_img(6, screen)
+        #         score.score += 1
         for i, bomb in enumerate(bombs):
-            if beam is not None and beam.rct.colliderect(bomb.rct):
-                beam = None
-                bombs[i] = None
-                bird.change_img(6, screen)
-                score.score += 1
+            for beam in beams:
+                if beam is not None and beam.rct.colliderect(bomb.rct):
+                    beams.remove(beam)
+                    bombs[i] = None
+                    bird.change_img(6, screen)
+                    score.score += 1
+
+
         # Noneでない爆弾だけのリストを作る
         bombs = [bomb for bomb in bombs if bomb is not None]
 
@@ -205,12 +219,17 @@ def main():
         bird.update(key_lst, screen)
         for bomb in bombs:
             bomb.update(screen)
-        if beam is not None:
-            beam.update(screen)
+
+        for i, beam in enumerate(beams):
+            if beam.rct.x < WIDTH:  # ビームが範囲内なら更新
+                beam.update(screen)
+            else:
+                beams.remove(beam)  # ビームが範囲外ならリストから削除
+
         score.update(screen)
         pg.display.update()
         tmr += 1
-        clock.tick(50)
+        clock.tick(50)        
 
 
 if __name__ == "__main__":
